@@ -1,6 +1,9 @@
 type Listener = (elapsed: number) => void;
 
-export type TimerType = "timer" | "stopwatch";
+export enum TimerType {
+  TIMER = "timer",
+  STOPWATCH = "stopwatch",
+}
 
 interface Timer {
   startTs: number;
@@ -22,7 +25,7 @@ export const TimerManager = {
         elapsedTime: currentElapsedMs,
         intervalId: null,
         listeners: new Set(),
-        type: "stopwatch",
+        type: TimerType.STOPWATCH,
       });
     }
   },
@@ -34,7 +37,7 @@ export const TimerManager = {
         elapsedTime: 0,
         intervalId: null,
         listeners: new Set(),
-        type: "timer",
+        type: TimerType.TIMER,
         initialDuration: durationMs,
       });
     }
@@ -55,7 +58,7 @@ export const TimerManager = {
       const value = this._computeValue(timer);
 
       // if we're down-ticking and hit zero, auto-clear:
-      if (timer.type === "timer" && value <= 0) {
+      if (timer.type === TimerType.TIMER && value <= 0) {
         timer.listeners.forEach((fn) => fn(0));
         this.clear(id);
         return;
@@ -75,15 +78,6 @@ export const TimerManager = {
       timer.intervalId = null;
     }
   },
-  // stop(id: string) {
-  //   const timer = timers.get(id);
-  //   if (timer?.intervalId != null) {
-  //     // add the ms since last start into our “already done” bucket
-  //     timer.elapsedTime += Date.now() - timer.startTs;
-  //     clearInterval(timer.intervalId);
-  //     timer.intervalId = null;
-  //   }
-  // },
 
   /** Completely remove this timer (listeners + state). */
   clear(id: string) {
@@ -114,7 +108,7 @@ export const TimerManager = {
       timer.intervalId != null ? Date.now() - timer.startTs : 0;
     const total = timer.elapsedTime + sinceStart;
 
-    if (timer.type === "stopwatch") {
+    if (timer.type === TimerType.STOPWATCH) {
       return total;
     } else {
       // down
